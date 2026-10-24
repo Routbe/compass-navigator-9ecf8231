@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Neon account (management) key saved securely as NEON_MANAGEMENT_API_KEY for branch/project admin
+- [x] Neon account (management) key saved securely as NEON_MANAGEMENT_API_KEY for branch/project admin
 - [ ] SECURITY (blocks all features): user rotates all keys after Railway leak; then add .env to .gitignore and reset sessions
 - [ ] Sprint brief (uploaded): Studio tabs segmented control, console personal/workspace scope + transfer, emoji→drawn icons, questions/guestbook toggles, Connect ROUT button, onboarding choice, admin handles, subdomain fallback, emails, ROUT login test-mode/redirect bugs, account preselect on login, hide page switch with 1 page
 - [ ] Quality follow-up: live example rendering and deterministic subdomain rules repaired; 690 existing tests pass; authenticated Studio and real DNS checks remain
