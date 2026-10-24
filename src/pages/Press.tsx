@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitContactMessage } from "@/lib/contact.functions";
+import { RoutButtonKit } from "@/components/dev/RoutButtonKit";
 
 type Asset = {
   name: string;
@@ -93,7 +94,7 @@ const BOILERPLATE = {
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [done, setDone] = useState(false);
   return (
-    <button
+    <Button variant="ghost" size="sm"
       type="button"
       onClick={async () => {
         try {
@@ -109,7 +110,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     >
       {done ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
       {done ? "Gekopieerd" : label}
-    </button>
+    </Button>
   );
 }
 
@@ -269,6 +270,8 @@ export default function Press() {
             ))}
           </div>
         </section>
+
+        <div className="mt-16"><RoutButtonKit /></div>
 
         <section className="mt-16" aria-labelledby="contact">
           <h2 id="contact" className="font-display text-2xl text-foreground">Perscontact</h2>

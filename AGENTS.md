@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Profile preview URLs carry an explicit root/alias namespace via profile-preview.ts; og-profile.server.ts enforces public visibility before rendering. Why: same-named aliases must never show another profile's card.
+- Uploaded avatar candidates use the image proxy, which allows only the configured storage bucket server-side; OG rasterization fetches first-party/proxied images only. Why: stored uploads must display without exposing visitor IPs or permitting arbitrary fetches.
 - Neon is the only database, reached only through src/lib/neon.ts, which picks the transport (direct via DATABASE_URL on Vercel, Lovable connector in preview); server code checks availability only via `hasDatabase()`, never one transport's env vars. Idempotent migrations live in db/NN_*.sql; runtime DDL uses runSchemaEnsure. Why: a connector-only check crashed every sign-in on Vercel.
 - Login ON rout.be (Better Auth, `better-auth.server.ts`) and login VIA rout.be (OIDC provider, `src/lib/oauth/*`) never share config; provider env vars use the `ROUT_PROVIDER_*` prefix. Why: one role must not break the other.
 - Sign-in tiles always render; missing credentials are refused before auth with provider_not_configured (400) and a warning. Why: missing keys must not hide options or crash auth.
