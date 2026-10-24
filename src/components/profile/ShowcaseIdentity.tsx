@@ -10,13 +10,14 @@ import { BadgeBackdrop } from "./BadgeBackdrop";
 import { CreatorBadgeIcon } from "./CreatorBadgeIcon";
 import { DomainBadgeIcon } from "./DomainBadgeIcon";
 import { cn } from "@/lib/utils";
+import { profileSurface } from "@/lib/profile-surface";
 
 export function ShowcaseAvatar({ card, className = "size-10" }: { card: ShowcaseCard; className?: string }) {
   const [failed, setFailed] = useState<string | null>(null);
   const src = profileImageSrc(card.avatarUrl);
   const p = card.display ?? showcaseDisplay(null);
   const shape = avatarShapeStyle(p.avatarShape);
-  return <AvatarFrameWrapper frame={p.avatarFrame} decoration={p.avatarDecoration} theme={themeOf(card.theme ?? "")}>
+  return <AvatarFrameWrapper frame={p.avatarFrame} decoration={p.avatarDecoration} theme={profileSurface(themeOf(card.theme ?? ""), p.canvasColor)}>
     {src && failed !== src
       ? <img src={src} alt="" loading="lazy" onError={() => setFailed(src)} className={cn(className, shape.className, "shrink-0 border border-border object-cover")} style={shape.style} />
       : <span className={cn(className, shape.className, "flex shrink-0 items-center justify-center bg-muted font-serif font-semibold text-foreground")} style={shape.style}>{(card.displayName ?? card.handle).charAt(0).toUpperCase()}</span>}

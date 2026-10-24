@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProfileDisplayPrefs } from "@/lib/profile-display";
+import { profilePreviewPath } from "@/lib/profile-preview";
 
 interface Props {
   prefs: ProfileDisplayPrefs;
@@ -10,6 +11,7 @@ interface Props {
   bio: string | null;
   /** Publieke handle; bepaalt de automatisch gegenereerde preview-kaart. */
   handle?: string;
+  space?: "root" | "alias";
 }
 
 /**
@@ -17,9 +19,9 @@ interface Props {
  * Zonder eigen overrides maakt ROUT automatisch een unieke kaart per lid
  * (/api/public/og/<handle>.png) op basis van profielnaam, bio en profielfoto.
  */
-export function ShareInspector({ prefs, onPrefChange, displayName, bio, handle }: Props) {
+export function ShareInspector({ prefs, onPrefChange, displayName, bio, handle, space }: Props) {
   const { t } = useTranslation();
-  const autoImage = handle ? `https://rout.be/api/public/og/${encodeURIComponent(handle)}.png` : null;
+  const autoImage = handle ? profilePreviewPath(handle, space) : null;
   const previewImage = prefs.ogImageUrl?.trim() || autoImage;
   const autoTitle = `${displayName?.trim() || t("studio.share.profile")}${handle ? ` (@${handle})` : ""} — ROUT`;
   return (

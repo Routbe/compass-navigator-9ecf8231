@@ -1,5 +1,6 @@
 /** Pure generators for AI prompts and database schema templates (Developer Console). */
 import { BRAND, LOGO_INNER, LOGO_VIEWBOX } from "@/lib/brand/logo";
+import { routButtonSnippet } from "./button-kit";
 
 export const ROUT_ISSUER = "https://rout.be";
 export const DISCOVERY_URL = `${ROUT_ISSUER}/.well-known/openid-configuration`;
@@ -22,7 +23,9 @@ function brandingSection(): string[] {
     "```",
     "",
     `- Brand colors: ROUT purple ${BRAND.purple}, mint ${BRAND.mint}, ink ${BRAND.ink}, paper ${BRAND.paper}.`,
-    "- Button style: paper-white background, ink text, 1px border in ink at 12% opacity, fully rounded (pill); the bunny sits left of the label 'Doorgaan met ROUT' / 'Continue with ROUT'.",
+    "- Use the canonical button markup below; adapt labels to the app language, preserve the official logo and accessible focus state. Connect ROUT links an already authenticated local account; it must not create or replace the local session.",
+    routButtonSnippet("login"),
+    routButtonSnippet("connect"),
     "- Never redraw, stretch, rotate or recolor the bunny beyond the allowed fill change; never replace it with another icon or animal.",
   ];
 }
@@ -80,7 +83,7 @@ export function claimsForScopes(scopes: string[], handleSync = false): string[] 
 
 export function buildAiPrompt(app: TemplateApp, tool: AiTool, stack: Stack): string {
   const scopes = app.scopes.join(" ");
-  const redirect = app.redirectUris[0] ?? "https://yourapp.com/auth/callback";
+  const redirect = app.redirectUris[0];
   const lines = [
     TOOLS[tool],
     `Implement "Login with ROUT" (OpenID Connect) in ${STACKS[stack]}.`,
@@ -88,13 +91,16 @@ export function buildAiPrompt(app: TemplateApp, tool: AiTool, stack: Stack): str
     "## Configuration",
     `- Discovery URL: ${DISCOVERY_URL}`,
     `- client_id: ${app.clientId}`,
-    "- client_secret: read from env var ROUT_CLIENT_SECRET (server-side only, never ship to the browser)",
+    "- Confidential server client: read client_secret from ROUT_CLIENT_SECRET on the server. Public SPA/native client: use PKCE without a secret; never invent or embed one.",
     `- Scopes: ${scopes}`,
-    `- Redirect URI: ${redirect}`,
+    `- Redirect URI: ${redirect ?? "NOT CONFIGURED — request the exact registered URI before enabling authorization."}`,
     `- PKCE: ${app.requirePkce ? "REQUIRED (S256)" : "recommended (S256)"}`,
     `- Claims you will receive (userinfo / id_token): ${claimsForScopes(app.scopes, app.handleSyncEnabled).join(", ")}`,
     "",
     "## Flow requirements",
+    "0. Inspect existing auth and preserve all working sign-in methods. Do not activate ROUT, Google or any other provider until its start handler, callback and real configuration exist and pass an end-to-end check. Missing configuration must yield a disabled button and a clear setup error, not a fabricated value.",
+    "0a. Start authorization ONLY after the user clicks or submits the button. Never auto-redirect on mount, page load, route guard or an effect; never silently log in by default. Account discovery is data linking after a verified callback, NOT authorization to initiate login.",
+    "0b. Use a proven OIDC library for state, nonce, PKCE and token validation. Keep login and account linking separate; link only with an existing local session, explicit consent and conflict checks. Do not link an identity already belonging to another local account.",
     "1. Fetch endpoints from the Discovery URL (do not hardcode them).",
     "2. Authorization Code flow with PKCE S256: generate code_verifier, state and nonce per attempt; store them in an HttpOnly, Secure, SameSite=Lax cookie.",
     "3. On the callback, verify `state`, then exchange the code at the token endpoint ON THE SERVER with the code_verifier.",
@@ -120,7 +126,7 @@ export function buildAiPrompt(app: TemplateApp, tool: AiTool, stack: Stack): str
   if (app.accountDiscoveryEnabled) {
     lines.push(
       "- Account Auto-Discovery is enabled: when a ROUT login arrives with a verified email that matches an existing user, LINK it to that user (insert into `user_identities` with provider='rout') instead of creating a duplicate. Only merge when email_verified is true.",
-      "- Support silent sign-in with `prompt=none`; handle `login_required` by falling back to the normal button.",
+      "- Do not initiate silent sign-in automatically. If the user explicitly requests it later, support `prompt=none` as a separate opt-in and handle `login_required` without redirect loops.",
     );
   }
   lines.push(...brandingSection());
@@ -223,7 +229,7 @@ export type PromptApp = { name: string; clientId: string };
 
 /** Opening lines shared by every prompt so the chosen assistant + stack apply everywhere. */
 function promptIntro(tool: AiTool, stack: Stack): string[] {
-  return [TOOLS[tool], `Build this in ${STACKS[stack]}.`, ""];
+  return [TOOLS[tool], `Build this in ${STACKS[stack]}.`, "Preserve existing authentication. Never activate a provider without real configuration, a start handler and a validated callback. Never start login automatically; require an explicit user action. Do not invent credentials, registered redirect URIs or available APIs.", ""];
 }
 
 export function buildHandleSyncPrompt(app: PromptApp, tool: AiTool = "generic", stack: Stack = "other"): string {
@@ -235,7 +241,7 @@ export function buildHandleSyncPrompt(app: PromptApp, tool: AiTool = "generic", 
     "CRITICAL REQUIREMENT: Do not build a custom username system. Instead, extract the `rout_handle` claim from ROUT's UserInfo endpoint and map it directly as the primary unique `username` field in our database. Set up an API route to listen for ROUT's `user.handle.updated` webhook to keep the username in sync.",
     "",
     "## Configuration",
-    "- client_secret: env var ROUT_CLIENT_SECRET (server only, never in browser code).",
+    "- Request the exact registered redirect URI before enabling the button. Confidential clients use ROUT_CLIENT_SECRET server-side; public clients use PKCE without a secret.",
     "- Webhook secret: env var ROUT_WEBHOOK_SECRET (server only).",
     "- Scopes: `openid profile email` (`profile` is required for `rout_handle`).",
     "",
@@ -272,7 +278,7 @@ export function buildBadgePrompt(app: PromptApp, tool: AiTool = "generic", stack
   return [
     ...promptIntro(tool, stack),
     `I want to integrate the ROUT Badge Issuance API into "${app.name}" (client_id ${app.clientId}) to send digital certificates to users' ROUT profiles.`,
-    "NOTE: this API is in preview; build it behind a feature flag ROUT_BADGES_ENABLED.",
+    "NOTE: this API is NOT implemented in the current ROUT release. Do not call it, enable issuance, show success, or fabricate returned badge IDs. Prepare an adapter disabled by default behind ROUT_BADGES_ENABLED; enable it only after the deployed endpoint and its published contract have been verified. The following contract is proposed, not a working integration.",
     `Please build a backend service that makes an authenticated POST request to \`${ROUT_ISSUER}/api/v1/badges/issue\`.`,
     "Include the Authorization Header: `Bearer <YOUR_SECRET_API_KEY>` read from env var ROUT_API_KEY (server only, never in the browser).",
     "Also send an `Idempotency-Key` header (UUID per certificate) so retries never create duplicate badges.",

@@ -1086,6 +1086,7 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
                   <section className="space-y-3 rounded-2xl border border-border bg-card p-4 sm:p-5">
                     <h2 className="text-lg font-medium">{t("studio.editor.share")}</h2>
                     <ShareInspector
+                      space={variant === "alias" ? "alias" : "root"}
                       prefs={prefs}
                       onPrefChange={setPref}
                       displayName={displayName}
@@ -1367,6 +1368,7 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
                 </AccordionTrigger>
                 <AccordionContent className="space-y-4 pb-5">
                   <SocialSharingCard
+                    space={variant === "alias" ? "alias" : "root"}
                     handle={handle || null}
                     displayName={displayName}
                     avatarUrl={avatarUrl}

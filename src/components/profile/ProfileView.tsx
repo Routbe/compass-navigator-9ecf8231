@@ -1,4 +1,6 @@
 import { LocaleDropdown } from "@/components/LocaleDropdown";
+import { profileSurface } from "@/lib/profile-surface";
+import { profileImageSrc } from "@/lib/image-proxy-rules";
 import { socialHandleKey } from "@/lib/social-block-rules";
 import { useTranslation } from "react-i18next";
 import { ProfileYouTubeCard } from "@/components/profile/YouTubeCard";
@@ -134,8 +136,9 @@ export function ProfileView({
       data: { handle: profile.username, blockId, label: label ?? null, space: free ? "alias" : "root" },
     }).catch(() => undefined);
   };
-  const t = themeOf(profile.theme);
   const prefs = parseDisplayPrefs(profile.display_prefs);
+  const t = profileSurface(themeOf(profile.theme), prefs.canvasColor ?? ((prefs.backgroundCustom || prefs.customDesign) && prefs.wallpaperType === "solid" ? prefs.wallpaperColor : null));
+  const avatarSrc = profileImageSrc(profile.avatar_url);
   const layers = normalizeDesignLayers(prefs.designLayers);
   const lv = (id: SectionId) => sectionVisible(layers, id);
   const sectionStyle = (id: SectionId) => ({ order: sectionOrder(layers, id), display: lv(id) ? undefined : "none" });
@@ -369,9 +372,9 @@ export function ProfileView({
           indicator={prefs.presenceIndicator}
           emoji={prefs.presenceEmoji}
         >
-          {profile.avatar_url ? (
+          {avatarSrc ? (
             <img
-              src={profile.avatar_url}
+              src={avatarSrc}
               alt={profile.display_name || `@${profile.username}`}
               className={`${avatarShape.className} object-cover`}
               style={{ width: prefs.avatarSize, height: prefs.avatarSize, border: `1px solid ${t.border}`, ...(avatarShape.style ?? {}) }}
@@ -392,7 +395,7 @@ export function ProfileView({
             </div>
           )}
         </AvatarFrameWrapper>
-        <ProfileStatus handle={profile.username ?? null} prefs={prefs} />
+        <ProfileStatus handle={profile.username ?? null} prefs={prefs} background={t.card} />
         </div>
 
         <h1
@@ -875,8 +878,9 @@ export function DecorationShape({ d }: { d: Decoration }) {
 }
 
 /** Status bubble; a 🎧 mark joins in automatically while Spotify plays. */
-function ProfileStatus({ handle, prefs }: {
+function ProfileStatus({ handle, prefs, background }: {
   handle: string | null;
+  background: string;
   prefs: { statusLine?: string | null; statusBubblePosition: Parameters<typeof StatusBubble>[0]["position"]; statusBubbleStyle: Parameters<typeof StatusBubble>[0]["bubbleStyle"]; statusBubbleBg: string | null; statusBubbleFont: Parameters<typeof StatusBubble>[0]["font"] };
 }) {
   const { t: tx } = useTranslation();
@@ -888,7 +892,7 @@ function ProfileStatus({ handle, prefs }: {
       text={prefs.statusLine ?? ""}
       position={prefs.statusBubblePosition}
       bubbleStyle={prefs.statusBubbleStyle}
-      bg={prefs.statusBubbleBg}
+      bg={prefs.statusBubbleBg ?? background}
       font={prefs.statusBubbleFont}
       extra={playing ? (
         <span className="ml-1 inline-flex" role="img" aria-label={tx("profile.listeningMusic")} title={`${np.data?.title ?? ""} — ${np.data?.artist ?? ""}`}>🎧</span>

@@ -109,6 +109,7 @@ export const Route = createFileRoute("/u/$username")({
       meta: (() => {
         const prefs = parseDisplayPrefs(profile["display_prefs"]);
         return profileSocialMeta({
+          space: "alias",
           locale,
           handle: (profile["username"] as string | undefined) ?? handle,
           displayName: profile["display_name"] as string | null,

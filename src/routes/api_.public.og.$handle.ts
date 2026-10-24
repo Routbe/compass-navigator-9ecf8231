@@ -22,6 +22,7 @@ export const Route = createFileRoute("/api_/public/og/$handle")({
         const raw = String(params.handle ?? "");
         const wantsSvg = /\.svg$/i.test(raw);
         const handle = sanitizeHandleInput(raw.replace(/\.(svg|png)$/i, ""));
+        const space = new URL(request.url).searchParams.get("space") === "alias" ? "alias" : "root";
         if (!/^[a-z0-9._-]{2,40}$/.test(handle)) {
           return new Response("Invalid handle", { status: 400 });
         }
@@ -35,18 +36,8 @@ export const Route = createFileRoute("/api_/public/og/$handle")({
         let urlLabel: string | undefined;
 
         try {
-          const { sql } = await import("@/lib/neon");
-          const rows = (await sql`
-            select display_name, tagline, bio, avatar_url, verified,
-                   to_jsonb(profiles) -> 'display_prefs' as display_prefs,
-                   to_jsonb(profiles) ->> 'theme' as theme,
-                   coalesce((to_jsonb(profiles) ->> 'is_business')::boolean, false) as is_business,
-                   coalesce((to_jsonb(profiles) ->> 'is_influencer')::boolean, false) as is_influencer
-              from public.profiles
-             where username = ${handle} and coalesce(is_banned, false) = false
-             limit 1
-          `) as Record<string, unknown>[];
-          const row = rows[0];
+          const { readOgProfile } = await import("@/lib/og-profile.server");
+          const row = await readOgProfile(handle, space);
           if (!row) return new Response("Not found", { status: 404 });
           const prefs = parseDisplayPrefs(row["display_prefs"]);
           // Profielen die het lid op privé heeft gezet leveren nooit een
@@ -89,9 +80,9 @@ export const Route = createFileRoute("/api_/public/og/$handle")({
             avatarShape: (prefs.avatarShape ?? "circle") as OgAvatarShape,
             badge,
           };
-          urlLabel = verified ? `rout.be/${handle}` : `rout.be/u/${handle}`;
+          urlLabel = space === "alias" ? `rout.be/u/${handle}` : `rout.be/${handle}`;
           const avatar = row["avatar_url"] as string | null;
-          avatarUrl = avatar && avatar.startsWith("http") ? avatar : null;
+          avatarUrl = avatar || null;
         } catch {
           // Database onbereikbaar: toon de generieke ROUT-kaart.
         }
@@ -103,7 +94,7 @@ export const Route = createFileRoute("/api_/public/og/$handle")({
             const { svgToPng, fetchImageAsDataUri } = await import("@/lib/og-render.server");
             // resvg haalt zelf geen externe afbeeldingen op: de avatar moet
             // als data-URI in de vector zitten voor we rasteriseren.
-            const inlineAvatar = avatarUrl ? await fetchImageAsDataUri(avatarUrl) : null;
+            const inlineAvatar = avatarUrl ? await fetchImageAsDataUri(avatarUrl, new URL(request.url).origin) : null;
             const png = await svgToPng(
               ogSvg({
                 handle,
@@ -134,7 +125,7 @@ export const Route = createFileRoute("/api_/public/og/$handle")({
           accent,
           ...design,
           bg: String(design.bg),
-          avatarUrl,
+          avatarUrl: null,
           ...(urlLabel ? { urlLabel } : {}),
         });
 

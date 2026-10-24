@@ -86,9 +86,12 @@ export async function svgToPng(svg: string, origin: string, background = "#13121
  * rasteriseren. Bij twijfel (te groot, geen afbeelding, fout) geven we `null`
  * terug zodat de kaart terugvalt op de initialen.
  */
-export async function fetchImageAsDataUri(url: string): Promise<string | null> {
+export async function fetchImageAsDataUri(url: string, origin: string): Promise<string | null> {
   try {
-    const response = await fetch(url, { redirect: "follow" });
+    const { profileImageSrc } = await import("./image-proxy-rules");
+    const path = profileImageSrc(url);
+    if (!path) return null;
+    const response = await fetch(new URL(path, origin), { redirect: "error", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return null;
     const type = response.headers.get("content-type") ?? "";
     if (!type.startsWith("image/") || type.includes("svg")) return null;

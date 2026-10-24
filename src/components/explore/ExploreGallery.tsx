@@ -53,6 +53,7 @@ export function ExploreGallery({ cards, filters = false }: { cards: ShowcaseCard
           <div className="flex gap-2" role="group">
             {([false, true] as const).map((v) => (
               <Button
+                variant="ghost"
                 key={String(v)}
                 type="button"
                 aria-pressed={onlyVerified === v}

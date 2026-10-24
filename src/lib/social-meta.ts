@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import { profilePreviewPath } from "@/lib/profile-preview";
 
 /**
  * Multilingual social preview cards.
@@ -81,6 +82,7 @@ export function profileSocialMeta(input: {
   accentColor?: string | null;
   /** Absolute URL van de profielpagina zelf. */
   url?: string | null;
+  space?: "root" | "alias";
 }) {
   const name = input.displayName?.trim() || `@${input.handle}`;
   const title = input.metaTitle?.trim() || `${name} (@${input.handle}) — ROUT`;
@@ -93,7 +95,7 @@ export function profileSocialMeta(input: {
   // Eigen upload > dynamisch gegenereerde ROUT-kaart (nooit de kale avatar).
   const image =
     input.ogImageUrl?.trim() ||
-    `https://rout.be/api/public/og/${encodeURIComponent(input.handle)}.png`;
+    `https://rout.be${profilePreviewPath(input.handle, input.space)}`;
   const url = input.url?.trim() || `https://rout.be/${input.handle}`;
   return [
     { title },

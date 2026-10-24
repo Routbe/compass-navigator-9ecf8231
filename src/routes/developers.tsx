@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CodeBlock } from "@/components/CodeBlock";
+import { RoutButtonKit } from "@/components/dev/RoutButtonKit";
 import { DISCOVERY_URL, handleUpdatedSample, WEBHOOK_VERIFY_SNIPPET } from "@/lib/oauth/integration-templates";
 
 const HANDLE_SAMPLE = handleUpdatedSample("rout_your_client_id");
@@ -34,7 +35,12 @@ const NAV = [
   { id: "errors", label: "Foutcodes en limieten" },
 ];
 
-const PKCE_JS = `// 1. Discovery ophalen (nooit endpoints hardcoden)
+const PKCE_JS = `// Server-side start handler: only run after the form's explicit POST.
+// Pseudocode: use your OIDC library + framework cookie/CSRF helpers.
+const clientId = process.env.ROUT_CLIENT_ID;
+const redirectUri = process.env.ROUT_REDIRECT_URI; // exact registered URL in YOUR app
+if (!clientId || !redirectUri) throw new Error("ROUT is not configured");
+// 1. Discovery ophalen (nooit endpoints hardcoden)
 const oidc = await fetch("${DISCOVERY_URL}").then((r) => r.json());
 
 // 2. Per poging: verifier, state en nonce — bewaar ze in een HttpOnly-cookie
@@ -49,13 +55,15 @@ const nonce = crypto.randomUUID();
 const url = new URL(oidc.authorization_endpoint);
 url.search = new URLSearchParams({
   response_type: "code",
-  client_id: process.env.ROUT_CLIENT_ID,
-  redirect_uri: "https://jouwapp.be/auth/callback/rout",
+  client_id: clientId,
+  redirect_uri: redirectUri,
   scope: "openid profile email",
   code_challenge: challenge,
   code_challenge_method: "S256",
   state, nonce,
-}).toString();`;
+}).toString();
+// Persist verifier/state/nonce in a short-lived HttpOnly Secure SameSite=Lax cookie,
+// then return a redirect to url. Never run this when the page merely loads.`;
 
 const TOKEN_JS = `// Op je server, in /auth/callback/rout — na controle van state
 const res = await fetch(oidc.token_endpoint, {
@@ -128,7 +136,10 @@ function DevelopersPage() {
               <li>Wijs je OIDC-bibliotheek naar het discovery-adres hieronder.</li>
             </ol>
             <CodeBlock code={DISCOVERY_URL} language="text" />
+            <p>Maak eerst de starthandler en callback in jouw eigen app en test de terugkeer. Activeer pas daarna de knop. Een ROUT-app aanmaken activeert geen login in jouw website en voegt geen Google-login toe. De voorbeelden hieronder zijn server-pseudocode; gebruik een OIDC-bibliotheek voor de volledige flow.</p>
           </section>
+
+          <RoutButtonKit />
 
           <section id="pkce" className="scroll-mt-24 space-y-4">
             <h2>Code-flow met PKCE (S256)</h2>
@@ -160,7 +171,7 @@ function DevelopersPage() {
             <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               <li><b className="text-foreground">Knop:</b> het officiële ROUT-logo met lokale tekst ("Login met ROUT", "Se connecter avec ROUT", "Mit ROUT anmelden").</li>
               <li><b className="text-foreground">Popup of doorsturen:</b> open een gecentreerde popup (500 × 650). Geblokkeerd? Stuur dan gewoon door; verifier, state en nonce blijven in een HttpOnly-, Secure-, SameSite=Lax-cookie.</li>
-              <li><b className="text-foreground">Callback</b> op <code>/auth/callback/rout</code>: controleer state, wissel de code in op de server, controleer het id_token (ES256 via JWKS; iss, aud, exp, nonce).</li>
+              <li><b className="text-foreground">Callback</b> op het geregistreerde adres in jouw eigen app (bijvoorbeeld <code>/auth/callback/rout</code>, geen ROUT-endpoint): controleer state, wissel de code in op de server, controleer het id_token (ES256 via JWKS; iss, aud, exp, nonce).</li>
               <li><b className="text-foreground">Sessie:</b> maak je eigen sessiecookie. Tokens komen nooit in browser-JavaScript.</li>
               <li><b className="text-foreground">Koppelen:</b> bestaat er al een gebruiker met hetzelfde <i>geverifieerde</i> e-mailadres, koppel ROUT dan aan dat account (in <code>user_identities</code>) in plaats van een dubbel account te maken. Anders: nieuw account met <code>rout_id = sub</code>.</li>
               <li><b className="text-foreground">Rich Identity:</b> overschrijf <code>rout_public_activity</code> bij elke login vanuit het id_token en wis het als de claim ontbreekt. Vertrouw nooit invoer uit de browser.</li>
@@ -172,7 +183,7 @@ function DevelopersPage() {
           <section id="handle-sync" className="scroll-mt-24 space-y-4">
             <h2>Universal Handle Sync en webhooks</h2>
             <p>Zet Universal Handle Sync aan in de console om ROUT de bron van gebruikersnamen te maken. Met de scope <code>profile</code> krijg je dan de claim <code>rout_handle</code> (in het id_token en via userinfo). Gebruik die als unieke <code>username</code>, maar koppel gebruikers altijd op <code>sub</code>: een handle kan veranderen.</p>
-            <p>Verandert een lid zijn handle, dan stuurt ROUT een ondertekende POST <code>user.handle.updated</code> naar je webhook (voorbeeld; levering wordt binnenkort geactiveerd). Controleer de header <code>x-rout-signature: t=…,v1=…</code> (HMAC-SHA256 over <code>t.body</code>, maximaal 5 minuten oud) en sla verwerkte event-id's op.</p>
+            <p>Handlewijzigingen gebruiken een ondertekende POST <code>user.handle.updated</code> naar je webhook. Controleer de header <code>x-rout-signature: t=…,v1=…</code> (HMAC-SHA256 over <code>t.body</code>, maximaal 5 minuten oud) en sla verwerkte event-id's op. Test levering voor jouw app voordat je synchronisatie als actief toont.</p>
             <CodeBlock code={HANDLE_SAMPLE} language="json" />
             <CodeBlock code={WEBHOOK_VERIFY_SNIPPET} language="javascript" />
           </section>
