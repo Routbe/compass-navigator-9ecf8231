@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { BrandLoader } from "@/components/BrandLoader";
+import { FirstUseTour } from "@/components/onboarding/FirstUseTour";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { useQuery } from "@tanstack/react-query";
@@ -54,18 +56,19 @@ export default function Studio() {
         </div>
       ) : (
         <div className="flex flex-1 flex-col space-y-6 pb-8">
+          <FirstUseTour area="studio" userId={user.id} />
           <div role="tablist" className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/30 p-1">
             {tabs.map(({ id, label, hint, Icon, locked }) => (
-              <button
+              <Button variant="ghost"
                 key={id}
                 type="button"
                 role="tab"
                 onClick={() => setVariant(id)}
                 aria-selected={variant === id}
-                className={`flex flex-1 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition ${
+                className={`flex h-auto min-h-12 flex-1 items-center justify-start gap-2 whitespace-normal rounded-lg px-3 py-2 text-left text-sm shadow-none transition ${
                   variant === id
-                    ? "bg-background shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-foreground text-background hover:bg-foreground hover:text-background"
+                    : "bg-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -74,7 +77,7 @@ export default function Studio() {
                   <span className="text-xs opacity-70">{hint}</span>
                 </span>
                 {locked && <Lock className="ml-auto h-3.5 w-3.5 opacity-70" aria-label={t("studio.common.locked")} />}
-              </button>
+              </Button>
             ))}
           </div>
           <ErrorBoundary label={t("studio.page.title")} inline>

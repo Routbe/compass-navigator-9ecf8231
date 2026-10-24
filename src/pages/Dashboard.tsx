@@ -1,4 +1,5 @@
 import { BrandLoader } from "@/components/BrandLoader";
+import { FirstUseTour } from "@/components/onboarding/FirstUseTour";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@/lib/router-compat";
 import {
@@ -246,6 +247,7 @@ export default function Dashboard() {
         </>
       }
     >
+      <FirstUseTour area="dashboard" userId={user.id} />
       <IdentityCard />
 
       <Tabs defaultValue="overview" className="space-y-4">
