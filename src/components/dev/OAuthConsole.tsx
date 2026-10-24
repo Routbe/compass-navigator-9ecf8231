@@ -62,6 +62,7 @@ export function OAuthConsole() {
 
   const [verified, setVerified] = useState<boolean | null>(null);
   const [clients, setClients] = useState<ClientRow[]>([]);
+  const shared = findSharedRedirects(clients);
   const [form, setForm] = useState({ ...empty });
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
