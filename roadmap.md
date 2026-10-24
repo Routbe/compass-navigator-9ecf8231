@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] SECURITY (blocks all features): user rotates all keys after Railway leak; then add .env to .gitignore and reset sessions
+- [ ] Sprint brief (uploaded): Studio tabs segmented control, console personal/workspace scope + transfer, emoji→drawn icons, questions/guestbook toggles, Connect ROUT button, onboarding choice, admin handles, subdomain fallback, emails, ROUT login test-mode/redirect bugs, account preselect on login, hide page switch with 1 page
 - [ ] Quality follow-up: live example rendering and deterministic subdomain rules repaired; 690 existing tests pass; authenticated Studio and real DNS checks remain
 - [ ] Studio: drawn top-level pictograms, remove duplicate QR settings, inline Knopvorm/Typografie customize controls, faithful Live examples
 - [ ] Anonymous questions: avatar answer stories, per-answer ROUT visibility and supported sharing; unsupported automatic external stories marked coming soon
