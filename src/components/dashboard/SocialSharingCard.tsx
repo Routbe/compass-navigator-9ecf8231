@@ -1,4 +1,5 @@
 import { BIO_LINK_MESSAGE, bioContainsLink } from "@/lib/bio-rules";
+import { profilePreviewPath } from "@/lib/profile-preview";
 import { useState } from "react";
 import { ExternalLink, Share2 } from "lucide-react";
 import { InfoHint } from "@/components/InfoHint";
@@ -29,8 +30,10 @@ export function SocialSharingCard({
   setPref,
   avatarUrl,
   bio,
+  space = "root",
 }: {
   handle: string | null;
+  space?: "root" | "alias";
   displayName: string;
   avatarUrl?: string | null;
   bio?: string | null;
@@ -42,8 +45,8 @@ export function SocialSharingCard({
   const sInput = { handle, displayName, avatarUrl, bio: prefs.bioNl ?? prefs.bioEn ?? prefs.bioFr ?? bio };
   const defaultTitle = suggestMetaTitle(sInput);
   const defaultDescription = suggestMetaDescription(sInput);
-  const autoCard = clean ? `/api/public/og/${clean}.png` : null;
-  const suggestedImage = suggestOgImage(sInput) || autoCard;
+  const autoCard = clean ? profilePreviewPath(clean, space) : null;
+  const suggestedImage = autoCard;
   // Altijd een automatische ROUT-kaart als standaard; eigen keuze overschrijft, wissen = terug naar auto.
   const previewImage = prefs.ogImageUrl || autoCard || suggestedImage;
   const isAuto = !prefs.ogImageUrl && !prefs.metaTitle && !prefs.metaDescription;
@@ -114,7 +117,7 @@ export function SocialSharingCard({
           {fieldActions(
             () => suggestedImage && /^https?:/.test(suggestedImage)
               ? setPref("ogImageUrl", suggestedImage)
-              : setPref("ogImageUrl", clean ? `https://rout.be/api/public/og/${clean}.png` : null),
+              : setPref("ogImageUrl", clean ? `https://rout.be${profilePreviewPath(clean, space)}` : null),
             () => setPref("ogImageUrl", null),
           )}
         </div>

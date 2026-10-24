@@ -14,7 +14,10 @@ export const Route = createFileRoute("/api_/public/proxy-image")({
         const limited = guardRequest(request, "proxy-image", 300, 60000);
         if (limited) return limited;
         const { isAllowedProxyUrl } = await import("@/lib/image-proxy-rules");
-        const target = isAllowedProxyUrl(new URL(request.url).searchParams.get("url") ?? "");
+        const region = process.env.SCALEWAY_REGION || process.env.S3_REGION || "fr-par";
+        const bucket = process.env.SCALEWAY_CLIENT_BUCKET || process.env.SCALEWAY_DEFAULT_BUCKET || process.env.S3_BUCKET_NAME;
+        const storageHosts = bucket ? [`${bucket}.s3.${region}.scw.cloud`] : [];
+        const target = isAllowedProxyUrl(new URL(request.url).searchParams.get("url") ?? "", storageHosts);
         if (!target) return new Response("Not allowed", { status: 400 });
         try {
           const res = await fetch(target.toString(), {
