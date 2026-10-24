@@ -14,6 +14,7 @@ import {
   rotateOAuthSecret,
   saveOAuthClient,
 } from "@/lib/oauth/console.functions";
+import { findSharedRedirects } from "@/lib/oauth/shared-redirects";
 
 type ClientRow = {
   id: string;
@@ -389,6 +390,12 @@ user ? await db.link(user, { rout_sub: info.sub }) : await db.create(info);`}</p
             {row.redirectUris.length > 0 && (
               <p className="mt-2 font-mono text-xs text-muted-foreground">
                 {row.redirectUris.join(" · ")}
+              </p>
+            )}
+            {shared[row.clientId] && (
+              <p role="alert" className="mt-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                Hetzelfde terugkeeradres staat ook bij: {shared[row.clientId]!.join(", ")}. Controleer welke
+                client_id je website gebruikt — die app moet live staan en de juiste sleutel hebben. Verwijder dubbele apps.
               </p>
             )}
           </div>
