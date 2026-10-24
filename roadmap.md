@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Neon account (management) key saved securely as NEON_MANAGEMENT_API_KEY for branch/project admin
+- [x] Neon account (management) key saved securely as NEON_MANAGEMENT_API_KEY for branch/project admin
 - [ ] SECURITY (blocks all features): user rotates all keys after Railway leak; then add .env to .gitignore and reset sessions
 - [ ] Sprint brief (uploaded): Studio tabs segmented control, console personal/workspace scope + transfer, emoji→drawn icons, questions/guestbook toggles, Connect ROUT button, onboarding choice, admin handles, subdomain fallback, emails, ROUT login test-mode/redirect bugs, account preselect on login, hide page switch with 1 page
 - [ ] Quality follow-up: live example rendering and deterministic subdomain rules repaired; 690 existing tests pass; authenticated Studio and real DNS checks remain
@@ -34,7 +34,7 @@
 - [x] Hub: single "Component toevoegen", social tabs, new platforms, YouTube as normal component, remove Totaal bereik, Badges & diploma's folder
 - [x] Social block: expandable settings, connect account, green verified mark, followers toggle
 - [x] Workspace switcher only with other workspaces (always in console) + console onboarding tour
-- [ ] ROUT login redirect-URI error: fixes done; root cause waits on a real failing example from the user
+- [x] ROUT login "test mode": root cause = 3 duplicate apps share one return address; console now warns on duplicates
 - [ ] i18n batch 2: auth flows — translated existing screens and settings; signed-in/email delivery verification waits on an active ROUT session
 - [ ] i18n batch 2: Studio/dashboard — primary editor, link/status controls and profile settings translated; remaining specialized panels need a follow-up pass, signed-in verification waits on an active ROUT session
 - [ ] AI bio polish & translate (profile_descriptions jsonb in Neon) + language switcher in app nav
