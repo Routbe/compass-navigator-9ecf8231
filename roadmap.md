@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Aanvullingen 2026-10-24: Vercel als uitvoeringsdoel; alleen noodzakelijke sleutels opvragen; profielhub-knoppen en achtergrondafhankelijke kaders/berichten verfijnen; Explore-avatarfouten; privé-alias-preview genereren; Press & brand kit met officiële Login/Connect ROUT-code; developer-console en veilige integratieprompts verbeteren; eerste-gebruik-rondleidingen voor profielkeuze, Studio en dashboard; custom domains voor zowel shortlinks als profielhubs. Blokker: bevestiging dat alle gelekte sleutels zijn ingetrokken en vervangen.
 - [x] Neon account (management) key saved securely as NEON_MANAGEMENT_API_KEY for branch/project admin
 - [ ] SECURITY (blocks all features): user rotates all keys after Railway leak; then add .env to .gitignore and reset sessions
 - [ ] Sprint brief (uploaded): Studio tabs segmented control, console personal/workspace scope + transfer, emoji→drawn icons, questions/guestbook toggles, Connect ROUT button, onboarding choice, admin handles, subdomain fallback, emails, ROUT login test-mode/redirect bugs, account preselect on login, hide page switch with 1 page
